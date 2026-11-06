@@ -58,10 +58,12 @@ hl.bind("SUPER + Z", function()
     local w = hl.get_active_window()
     if not w then return end
     if w.floating then
+        hl.dispatch(hl.dsp.window.tag({ tag = "-zfloat", window = "address:" .. w.address }))
         hl.dispatch(hl.dsp.window.float({ action = "disable", window = "address:" .. w.address }))
         return
     end
     local mon = w.monitor or hl.get_active_monitor()
+    hl.dispatch(hl.dsp.window.tag({ tag = "+zfloat", window = "address:" .. w.address }))
     hl.dispatch(hl.dsp.window.float({ action = "enable", window = "address:" .. w.address }))
     if mon then
         local tw, th = math.floor(mon.width * 0.7), math.floor(mon.height * 0.7)

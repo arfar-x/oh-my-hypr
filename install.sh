@@ -2,7 +2,8 @@
 # Apply oh-my-hypr on top of a stock end-4 (illogical-impulse) install.
 # Existing files are backed up next to themselves as <file>.pre-oh-my-hypr.
 set -euo pipefail
-SRC="$(cd "$(dirname "$0")/config" && pwd)"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+SRC="$ROOT/config"
 DST="${XDG_CONFIG_HOME:-$HOME/.config}"
 cd "$SRC"
 find . -type f | while read -r f; do
@@ -17,7 +18,7 @@ done
 
 # Terminal palette (kitty + fish) pinned to the reference look. end-4 regenerates
 # these from the wallpaper, so they are replaced the next time the wallpaper/theme changes.
-TSRC="$(cd "$(dirname "$0")/state/terminal" && pwd)"
+TSRC="$ROOT/state/terminal"
 TDST="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/user/generated/terminal"
 mkdir -p "$TDST"
 for f in kitty-theme.conf sequences.txt; do

@@ -1,0 +1,84 @@
+hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/keybinds.lua"), {description = "Edit user keybinds"} )
+
+hl.bind("SUPER + Space", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"), {description = "Input: Switch keyboard layout"})
+
+hl.bind("ALT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })
+hl.bind("ALT + SHIFT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })
+
+hl.unbind("SUPER + Tab")
+
+-- Cycle workspaces; the overview opens as a preview only if Super is still held
+-- after tabPreviewDelay ms without another Tab press, and closes on Super release.
+-- toggleReleaseInterrupt stops the Super release from also toggling search.
+local qsIpcSearch = "qs -c $qsConfig ipc call search"
+local tabPreviewDelay = 250
+local tabPreview = false
+local previewShown = false
+local previewTimer = nil
+local function cycleWorkspace(target)
+    hl.dispatch(hl.dsp.focus({ workspace = target }))
+    tabPreview = true
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcSearch .. " toggleReleaseInterrupt"))
+    if previewShown then return end
+    if previewTimer then previewTimer:set_enabled(false) end
+    previewTimer = hl.timer(function()
+        if not tabPreview then return end
+        previewShown = true
+        hl.dispatch(hl.dsp.exec_cmd(qsIpcSearch .. " previewOpen"))
+    end, { timeout = tabPreviewDelay, type = "oneshot" })
+end
+hl.bind("SUPER + Tab", function() cycleWorkspace("+1") end, { description = "Workspace: Focus next (preview while Super held)" })
+hl.bind("SUPER + SHIFT + Tab", function() cycleWorkspace("-1") end, { description = "Workspace: Focus previous (preview while Super held)" })
+for _, key in ipairs({ "SUPER_L", "SUPER_R" }) do
+    hl.bind(key, function()
+        if not tabPreview then return end
+        tabPreview = false
+        if previewTimer then previewTimer:set_enabled(false) end
+        if previewShown then
+            previewShown = false
+            hl.dispatch(hl.dsp.exec_cmd(qsIpcSearch .. " close"))
+        end
+    end, { release = true, ignore_mods = true, transparent = true })
+end
+
+hl.unbind("SUPER + A")
+hl.bind("SUPER + A", hl.dsp.exec_cmd(qsIpcSearch .. " toggle || pkill fuzzel || fuzzel"), { description = "Launcher: Toggle app launcher (fuzzel if the shell is down)" })
+
+-- Window state: Super+Up maximize, Super+Down minimize, Super+D show desktop
+local windowState = HOME .. "/.config/hypr/custom/scripts/window-state.sh"
+for _, k in ipairs({ "SUPER + Up", "SUPER + Down", "SUPER + D", "SUPER + ALT + Space" }) do hl.unbind(k) end
+hl.bind("SUPER + Up", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }), { description = "Window: Maximize/restore" })
+hl.bind("SUPER + Down", hl.dsp.exec_cmd(windowState .. " minimize"), { description = "Window: Minimize" })
+hl.bind("SUPER + SHIFT + Z", hl.dsp.exec_cmd(windowState .. " unminimize"), { description = "Window: Restore last minimized" })
+hl.bind("SUPER + D", hl.dsp.exec_cmd(windowState .. " show-desktop"), { description = "Show desktop / restore windows" })
+hl.bind("SUPER + Z", hl.dsp.window.float({ action = "toggle" }), { description = "Window: Float/Tile" })
+
+-- tmux-style resize: Ctrl+B enters a submap, arrows resize (repeatable), Esc/Enter/Ctrl+B exits.
+local resizeStep = 40
+hl.bind("CTRL + B", hl.dsp.submap("tmux-resize"), { description = "Window: tmux-style resize mode" })
+hl.define_submap("tmux-resize", function()
+    local dirs = { Left = { -resizeStep, 0 }, Right = { resizeStep, 0 }, Up = { 0, -resizeStep }, Down = { 0, resizeStep } }
+    for key, d in pairs(dirs) do
+        hl.bind(key, hl.dsp.window.resize({ x = d[1], y = d[2], relative = true }), { repeating = true })
+        hl.bind("CTRL + " .. key, hl.dsp.window.resize({ x = d[1] * 3, y = d[2] * 3, relative = true }), { repeating = true })
+    end
+    hl.bind("Escape", hl.dsp.submap("reset"))
+    hl.bind("Return", hl.dsp.submap("reset"))
+    hl.bind("CTRL + B", hl.dsp.submap("reset"))
+end)
+
+-- Hold Super+X, then Super+left-drag resizes the window; releasing X exits.
+hl.unbind("SUPER + X")
+hl.bind("SUPER + X", hl.dsp.submap("x-resize"), { description = "Window: hold + left-drag to resize" })
+hl.define_submap("x-resize", function()
+    hl.bind("SUPER + mouse:272", hl.dsp.window.resize(), { mouse = true })
+    hl.bind("Escape", hl.dsp.submap("reset"))
+end)
+
+-- Release binds must be universal so they fire inside the submap; only act while in x-resize.
+local function leaveXResize()
+    if hl.get_current_submap() == "x-resize" then hl.dispatch(hl.dsp.submap("reset")) end
+end
+for _, k in ipairs({ "X", "SUPER + X", "Super_L", "Super_R", "SUPER + Super_L", "SUPER + Super_R", "code:53", "SUPER + code:53", "code:133", "code:134" }) do
+    hl.bind(k, leaveXResize, { release = true, submap_universal = true, non_consuming = true })
+end

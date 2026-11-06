@@ -32,7 +32,7 @@ done
 for c in kitty fish starship eza; do
   command -v "$c" >/dev/null || echo "WARNING: '$c' is not installed (needed for the kitty/fish look)"
 done
-fc-list | grep -qi "JetBrainsMono Nerd Font" || echo "WARNING: JetBrains Mono Nerd Font missing (pacman -S ttf-jetbrains-mono-nerd)"
+fc-match "JetBrains Mono Nerd Font" | grep -qi "JetBrainsMono Nerd Font" || echo "WARNING: JetBrains Mono Nerd Font missing (pacman -S ttf-jetbrains-mono-nerd)"
 
 command -v hyprctl >/dev/null && hyprctl reload || true
 echo "Done. Restart quickshell to load QML changes: killall qs quickshell; qs -c ii &"

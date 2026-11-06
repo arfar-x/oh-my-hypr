@@ -4,6 +4,8 @@ Personal customizations for a stock [end-4/dots-hyprland](https://github.com/end
 
 Apply: `./install.sh` (idempotent: overwrites only changed files, creates no backups or leftovers).
 
+Remove everything again: `./uninstall.sh` (`--dry-run` to preview). Restores the stock end-4 version of every file, deletes files this repo added, and has end-4 regenerate the terminal palette. Needs network access to fetch the stock files.
+
 ## What's in it
 - **hypr/custom/keybinds.lua** – Ctrl+B tmux-style resize mode (arrows, Ctrl+Arrow = bigger steps, Esc/Enter/Ctrl+B exit); hold Super+X + left-drag to resize; Super+Up maximize, Super+Down minimize, Super+Shift+Z restore, Super+D show desktop, Super+Z float/tile; Alt+Tab window picker (hold Alt, Tab cycles, release focuses); Super+Tab workspace cycle with overview preview; Super+A fuzzel.
 - **hypr/custom/per-app-rules.lua / rules.lua** – translucency + blur for VS Code, Kitty, Telegram; fuzzel, overview and Alt+Tab picker layer blur.

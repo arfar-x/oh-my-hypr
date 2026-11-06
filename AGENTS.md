@@ -9,6 +9,7 @@ Personal customizations layered on a stock [end-4/dots-hyprland](https://github.
 - `config/quickshell/ii/` – QML edits and additions to the `ii` shell (Alt+Tab picker in `modules/ii/altTab/`, registered in `panelFamilies/IllogicalImpulseFamily.qml`).
 - `install.sh` – copies `config/` into `~/.config`, overwriting only files that differ (idempotent, no backups or leftovers), then runs `hyprctl reload` if anything changed.
 - `state/terminal/` – pinned generated terminal palette, installed to `~/.local/state/quickshell/user/generated/terminal/` by `install.sh` (not a `~/.config` mirror).
+- `uninstall.sh` – reverses `install.sh`: restores stock files from end-4/dots-hyprland at the pinned commit (`UPSTREAM_REF`; bump it together with the README commit note), deletes repo-only files, removes the pinned palette. Any new file added under `config/` is handled automatically.
 
 ## Workflow: live config is the working copy
 The files actually running are in `~/.config`, not in this repo. Edit and test there, then copy the changed files back into `config/`.

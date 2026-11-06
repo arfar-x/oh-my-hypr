@@ -80,10 +80,10 @@ Scope {
             ParallelAnimation {
                 id: anim
                 onStarted: snap.visible = true
-                NumberAnimation { target: snap; property: "x"; to: panel.width / 2 - root.fromW / 2; duration: 320; easing.type: Easing.InCubic }
-                NumberAnimation { target: snap; property: "y"; to: panel.height - 50 - root.fromH / 2; duration: 320; easing.type: Easing.InCubic }
-                NumberAnimation { target: snap; property: "scale"; to: 0.06; duration: 320; easing.type: Easing.InCubic }
-                NumberAnimation { target: snap; property: "opacity"; to: 0; duration: 320; easing.type: Easing.InQuad }
+                NumberAnimation { target: snap; property: "x"; to: panel.width / 2 - root.fromW / 2; duration: 220; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.4, 0, 0.2, 1, 1, 1] }
+                NumberAnimation { target: snap; property: "y"; to: panel.height - 50 - root.fromH / 2; duration: 220; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.4, 0, 0.2, 1, 1, 1] }
+                NumberAnimation { target: snap; property: "scale"; to: 0.06; duration: 220; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.4, 0, 0.2, 1, 1, 1] }
+                NumberAnimation { target: snap; property: "opacity"; to: 0; duration: 220; easing.type: Easing.OutQuad }
                 onFinished: {
                     snap.visible = false;
                     root.toplevel = null;

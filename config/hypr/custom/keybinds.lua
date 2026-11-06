@@ -191,6 +191,11 @@ end
 -- keycodes: 133 = Super_L, 134 = Super_R (evdev + 8).
 local superHeld = {}
 hl.on("input.keyboard.key", function(keycode, _, state)
+    -- Leave the Super+X resize mode when X or Super is released. The release binds above are
+    -- not delivered reliably while a mouse button is held, so this raw event is the safety net.
+    if state == 0 and (keycode == 53 or keycode == 133 or keycode == 134) then
+        leaveXResize()
+    end
     if keycode == 133 or keycode == 134 then
         superHeld[keycode] = (state == 1) or nil
     elseif state == 1 and (superHeld[133] or superHeld[134]) then

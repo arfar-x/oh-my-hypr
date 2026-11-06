@@ -8,6 +8,7 @@ Personal customizations layered on a stock [end-4/dots-hyprland](https://github.
 - `config/hypr/hyprland/*.lua`, `hyprlock.conf` – small edits to upstream files. Keep these minimal.
 - `config/quickshell/ii/` – QML edits and additions to the `ii` shell (Alt+Tab picker in `modules/ii/altTab/`, registered in `panelFamilies/IllogicalImpulseFamily.qml`).
 - `install.sh` – copies `config/` into `~/.config`, backing up replaced files as `<file>.pre-oh-my-hypr`, then runs `hyprctl reload`.
+- `state/terminal/` – pinned generated terminal palette, installed to `~/.local/state/quickshell/user/generated/terminal/` by `install.sh` (not a `~/.config` mirror).
 
 ## Workflow: live config is the working copy
 The files actually running are in `~/.config`, not in this repo. Edit and test there, then copy the changed files back into `config/`.

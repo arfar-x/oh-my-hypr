@@ -14,5 +14,24 @@ find . -type f | while read -r f; do
   cp -a "$f" "$DST/$f"
   echo "installed $f"
 done
+
+# Terminal palette (kitty + fish) pinned to the reference look. end-4 regenerates
+# these from the wallpaper, so they are replaced the next time the wallpaper/theme changes.
+TSRC="$(cd "$(dirname "$0")/state/terminal" && pwd)"
+TDST="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/user/generated/terminal"
+mkdir -p "$TDST"
+for f in kitty-theme.conf sequences.txt; do
+  if [ -e "$TDST/$f" ] && ! cmp -s "$TSRC/$f" "$TDST/$f" && [ ! -e "$TDST/$f.pre-oh-my-hypr" ]; then
+    cp -a "$TDST/$f" "$TDST/$f.pre-oh-my-hypr"
+  fi
+  cp -a "$TSRC/$f" "$TDST/$f"
+  echo "installed terminal palette $f"
+done
+
+for c in kitty fish starship eza; do
+  command -v "$c" >/dev/null || echo "WARNING: '$c' is not installed (needed for the kitty/fish look)"
+done
+fc-list | grep -qi "JetBrainsMono Nerd Font" || echo "WARNING: JetBrains Mono Nerd Font missing (pacman -S ttf-jetbrains-mono-nerd)"
+
 command -v hyprctl >/dev/null && hyprctl reload || true
 echo "Done. Restart quickshell to load QML changes: killall qs quickshell; qs -c ii &"

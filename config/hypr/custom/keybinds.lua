@@ -51,7 +51,24 @@ hl.bind("SUPER + Up", hl.dsp.window.fullscreen({ mode = "maximized", action = "t
 hl.bind("SUPER + Down", hl.dsp.exec_cmd(windowState .. " minimize"), { description = "Window: Minimize" })
 hl.bind("SUPER + SHIFT + Z", hl.dsp.exec_cmd(windowState .. " unminimize"), { description = "Window: Restore last minimized" })
 hl.bind("SUPER + D", hl.dsp.exec_cmd(windowState .. " show-desktop"), { description = "Show desktop / restore windows" })
-hl.bind("SUPER + Z", hl.dsp.window.float({ action = "toggle" }), { description = "Window: Float/Tile" })
+-- Floating a tiled window keeps its geometry, so nothing would visibly happen. Resize it to
+-- 70% of the monitor and centre it so windowsMove animates the transition; tiling again
+-- animates back into the layout.
+hl.bind("SUPER + Z", function()
+    local w = hl.get_active_window()
+    if not w then return end
+    if w.floating then
+        hl.dispatch(hl.dsp.window.float({ action = "disable", window = "address:" .. w.address }))
+        return
+    end
+    local mon = w.monitor or hl.get_active_monitor()
+    hl.dispatch(hl.dsp.window.float({ action = "enable", window = "address:" .. w.address }))
+    if mon then
+        local tw, th = math.floor(mon.width * 0.7), math.floor(mon.height * 0.7)
+        hl.dispatch(hl.dsp.window.resize({ x = tw, y = th, exact = true, window = "address:" .. w.address }))
+        hl.dispatch(hl.dsp.window.center({ window = "address:" .. w.address }))
+    end
+end, { description = "Window: Float/Tile" })
 
 -- tmux-style resize: Ctrl+B enters a submap, arrows resize (repeatable), Esc/Enter/Ctrl+B exits.
 local resizeStep = 40

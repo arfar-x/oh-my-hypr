@@ -1,32 +1,36 @@
 #!/usr/bin/env bash
 # Apply oh-my-hypr on top of a stock end-4 (illogical-impulse) install.
-# Existing files are backed up next to themselves as <file>.pre-oh-my-hypr.
+# Idempotent: files are overwritten only when they differ, no backups or other
+# leftovers are created, and a second run changes nothing.
+# Replaced files are the stock end-4 ones; restore them from dots-hyprland if needed.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-SRC="$ROOT/config"
-DST="${XDG_CONFIG_HOME:-$HOME/.config}"
-cd "$SRC"
-find . -type f | while read -r f; do
-  f="${f#./}"
-  mkdir -p "$DST/$(dirname "$f")"
-  if [ -e "$DST/$f" ] && ! cmp -s "$f" "$DST/$f" && [ ! -e "$DST/$f.pre-oh-my-hypr" ]; then
-    cp -a "$DST/$f" "$DST/$f.pre-oh-my-hypr"
+CHANGED=0
+
+# sync SRC_FILE DST_FILE LABEL
+sync() {
+  if [ -e "$2" ] && cmp -s "$1" "$2"; then
+    return
   fi
-  cp -a "$f" "$DST/$f"
-  echo "installed $f"
-done
+  mkdir -p "$(dirname "$2")"
+  cp -a "$1" "$2"
+  CHANGED=1
+  echo "installed $3"
+}
+
+cd "$ROOT/config"
+DST="${XDG_CONFIG_HOME:-$HOME/.config}"
+while read -r f; do
+  f="${f#./}"
+  sync "$f" "$DST/$f" "$f"
+done < <(find . -type f | sort)
 
 # Terminal palette (kitty + fish) pinned to the reference look. end-4 regenerates
-# these from the wallpaper, so they are replaced the next time the wallpaper/theme changes.
-TSRC="$ROOT/state/terminal"
+# these from the wallpaper, so a later wallpaper/theme change replaces them;
+# rerunning this script puts them back.
 TDST="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/user/generated/terminal"
-mkdir -p "$TDST"
 for f in kitty-theme.conf sequences.txt; do
-  if [ -e "$TDST/$f" ] && ! cmp -s "$TSRC/$f" "$TDST/$f" && [ ! -e "$TDST/$f.pre-oh-my-hypr" ]; then
-    cp -a "$TDST/$f" "$TDST/$f.pre-oh-my-hypr"
-  fi
-  cp -a "$TSRC/$f" "$TDST/$f"
-  echo "installed terminal palette $f"
+  sync "$ROOT/state/terminal/$f" "$TDST/$f" "terminal palette $f"
 done
 
 for c in kitty fish starship eza; do
@@ -34,5 +38,9 @@ for c in kitty fish starship eza; do
 done
 fc-match "JetBrains Mono Nerd Font" | grep -qi "JetBrainsMono Nerd Font" || echo "WARNING: JetBrains Mono Nerd Font missing (pacman -S ttf-jetbrains-mono-nerd)"
 
-command -v hyprctl >/dev/null && hyprctl reload || true
-echo "Done. Restart quickshell to load QML changes: killall qs quickshell; qs -c ii &"
+if [ "$CHANGED" = 1 ]; then
+  command -v hyprctl >/dev/null && hyprctl reload || true
+  echo "Done. Restart quickshell to load QML changes: killall qs quickshell; qs -c ii &"
+else
+  echo "Already up to date."
+fi

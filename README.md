@@ -2,7 +2,7 @@
 
 Personal customizations for a stock [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) (illogical-impulse) install. `config/` mirrors `~/.config`; only files that differ from upstream are included.
 
-Apply: `./install.sh` (backs up replaced files as `*.pre-oh-my-hypr`).
+Apply: `./install.sh` (idempotent: overwrites only changed files, creates no backups or leftovers).
 
 ## What's in it
 - **hypr/custom/keybinds.lua** – Ctrl+B tmux-style resize mode (arrows, Ctrl+Arrow = bigger steps, Esc/Enter/Ctrl+B exit); hold Super+X + left-drag to resize; Super+Up maximize, Super+Down minimize, Super+Shift+Z restore, Super+D show desktop, Super+Z float/tile; Alt+Tab window picker (hold Alt, Tab cycles, release focuses); Super+Tab workspace cycle with overview preview; Super+A fuzzel.

@@ -97,6 +97,31 @@ hl.on("window.active", function(win)
     hl.dispatch(hl.dsp.focus({ window = "address:" .. win.address }))
 end)
 
+-- Clicking a tiled window sends overlapping floating windows to the back. Hyprland always
+-- draws floating above tiled, so they are parked on special:minimized (restore via dock,
+-- Alt+Tab or SUPER+SHIFT+Z).
+local function rectOf(w)
+    local at, sz = w.at, w.size
+    local x, y = at.x or at[1], at.y or at[2]
+    local ww, hh = sz.x or sz[1], sz.y or sz[2]
+    return x, y, ww, hh
+end
+
+hl.on("window.active", function(win)
+    if not win or win.floating or not win.workspace or win.workspace.id < 0 then return end
+    local ax, ay, aw, ah = rectOf(win)
+    for _, w in ipairs(hl.get_workspace_windows(win.workspace.id)) do
+        if w.floating and w.mapped and not w.pinned and w.address ~= win.address then
+            local x, y, ww, hh = rectOf(w)
+            if x < ax + aw and ax < x + ww and y < ay + ah and ay < y + hh then
+                local f = io.open((os.getenv("XDG_RUNTIME_DIR") or "/tmp") .. "/hypr-window-state/minimized", "a")
+                if f then f:write(w.address, "\n"); f:close() end
+                hl.dispatch(hl.dsp.window.move({ workspace = "special:minimized", window = "address:" .. w.address, follow = false }))
+            end
+        end
+    end
+end)
+
 -- Alt+Tab window picker (quickshell altTab module). Hold Alt, Tab cycles, release Alt focuses.
 local qsIpcAlt = "qs -c $qsConfig ipc call altTab"
 local altTabOpen = false

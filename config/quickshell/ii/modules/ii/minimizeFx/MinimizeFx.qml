@@ -63,6 +63,10 @@ Scope {
             onHasContentChanged: {
                 if (!hasContent || snap.visible) return;
                 grabber.grabToImage(function(result) {
+                    // Earlier animations overwrote these bindings, so set the start geometry explicitly
+                    snap.x = root.fromX; snap.y = root.fromY;
+                    snap.width = root.fromW; snap.height = root.fromH;
+                    snap.scale = 1; snap.opacity = 1;
                     snap.source = result.url;
                     anim.restart();
                 });

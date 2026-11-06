@@ -26,5 +26,6 @@ The files actually running are in `~/.config`, not in this repo. Edit and test t
 ## Conventions
 - Hyprland config is Lua (`hl.*` API; type stubs at `/usr/share/hypr/stubs/hl.meta.lua`), not hyprlang.
 - Override an upstream binding in `custom/keybinds.lua` with `hl.unbind(...)` followed by `hl.bind(...)`; override upstream global functions (e.g. `workspace_in_group`) by redefining them there too.
-- Commit messages: plain text describing the change only. Never add Claude- or agent-specific metadata: no `Co-Authored-By` trailers naming an AI, no "Generated with ..." lines, no tool or agent names.
+- Only generic, reproducible configuration belongs here. Never commit personal or machine-specific data: usernames or home paths, API keys/tokens/endpoints, company or account names, hardware device paths, locale/keyboard-layout choices, wallpapers. Check `git diff` for these before every commit; do not mirror whole live settings files such as `illogical-impulse/config.json`.
+- Commit messages: Conventional Commits (`type(scope): subject`, e.g. `feat(altTab): ...`). Plain text describing the change only. Never add Claude- or agent-specific metadata: no `Co-Authored-By` trailers naming an AI, no "Generated with ..." lines, no tool or agent names.
 - README states it is written against dots-hyprland commit `2f2a376`; upstream changes may require re-syncing the edited upstream files.

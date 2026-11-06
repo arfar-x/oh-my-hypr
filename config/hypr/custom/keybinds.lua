@@ -143,22 +143,34 @@ hl.on("window.active", function(win)
     end
 end)
 
--- Alt+Tab window picker (quickshell altTab module). Hold Alt, Tab cycles, release Alt focuses.
+-- Alt+Tab window picker (quickshell altTab module). Hold Alt, Tab cycles, arrows move, release Alt focuses.
+-- While the picker is open we sit in the "alt-tab" submap so Alt+Arrows only navigate the picker;
+-- everywhere else Alt+Arrows keep working in apps. Binds are universal so they work in and out of it.
 local qsIpcAlt = "qs -c $qsConfig ipc call altTab"
 local altTabOpen = false
+local function altTabCall(cmd)
+    altTabOpen = true
+    hl.dispatch(hl.dsp.submap("alt-tab"))
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " " .. cmd .. " || hyprctl dispatch 'hl.dsp.focus({ last = true })'"))
+end
 for _, k in ipairs({ "ALT + Tab", "ALT + SHIFT + Tab" }) do hl.unbind(k) end
-hl.bind("ALT + Tab", function()
-    altTabOpen = true
-    hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " next || hyprctl dispatch 'hl.dsp.focus({ last = true })'"))
-end, { description = "Window: Alt+Tab picker (next)" })
-hl.bind("ALT + SHIFT + Tab", function()
-    altTabOpen = true
-    hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " prev || hyprctl dispatch 'hl.dsp.focus({ last = true })'"))
-end, { description = "Window: Alt+Tab picker (previous)" })
+hl.bind("ALT + Tab", function() altTabCall("next") end, { description = "Window: Alt+Tab picker (next)", submap_universal = true })
+hl.bind("ALT + SHIFT + Tab", function() altTabCall("prev") end, { description = "Window: Alt+Tab picker (previous)", submap_universal = true })
+hl.define_submap("alt-tab", function()
+    for key, cmd in pairs({ Left = "left", Right = "right", Up = "up", Down = "down" }) do
+        hl.bind("ALT + " .. key, hl.dsp.exec_cmd(qsIpcAlt .. " " .. cmd), { repeating = true })
+    end
+    hl.bind("Escape", function()
+        altTabOpen = false
+        hl.dispatch(hl.dsp.submap("reset"))
+        hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " cancel"))
+    end)
+end)
 for _, k in ipairs({ "ALT_L", "ALT_R" }) do
     hl.bind(k, function()
         if not altTabOpen then return end
         altTabOpen = false
+        hl.dispatch(hl.dsp.submap("reset"))
         hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
-    end, { release = true, ignore_mods = true, transparent = true })
+    end, { release = true, ignore_mods = true, transparent = true, submap_universal = true })
 end

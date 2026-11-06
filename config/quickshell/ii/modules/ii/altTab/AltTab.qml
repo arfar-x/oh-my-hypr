@@ -14,6 +14,7 @@ import Quickshell.Hyprland
 //   altTab next / prev  - open (if closed) and move the selection
 //   altTab confirm      - focus the selected window (bound to Alt release)
 //   altTab cancel
+//   altTab left / right / up / down - move the selection with the arrow keys
 // Minimized windows are listed too; focusing one restores it (see window.active hook).
 Scope {
     id: root
@@ -59,6 +60,18 @@ Scope {
         root.shown = true; // cycling again means the user wants to see it
     }
 
+    // Arrow-key navigation while Alt is held: dx moves along the row (wraps), dy moves by rows (clamped).
+    function move(dx, dy) {
+        if (!root.active) return;
+        const n = root.entries.length;
+        if (dx !== 0) root.index = (root.index + dx + n) % n;
+        if (dy !== 0) {
+            const target = root.index + dy * strip.perRow;
+            if (target >= 0 && target < n) root.index = target;
+        }
+        root.shown = true;
+    }
+
     function finish(focusSelected) {
         if (!root.active) return;
         const target = root.entries[root.index];
@@ -90,6 +103,10 @@ Scope {
         function prev(): void { root.step(-1); }
         function confirm(): void { root.finish(true); }
         function cancel(): void { root.finish(false); }
+        function left(): void { root.move(-1, 0); }
+        function right(): void { root.move(1, 0); }
+        function up(): void { root.move(0, -1); }
+        function down(): void { root.move(0, 1); }
     }
 
     PanelWindow {

@@ -214,15 +214,24 @@ Scope {
         interval: 250 // ms: the double-tap window
         onTriggered: GlobalStates.overviewOpen = true
     }
+    // Holding Super past 0.5 s means the user is waiting for a combo (or changed their mind):
+    // releasing it must not count as a launcher tap.
+    Timer {
+        id: superHoldTimer
+        interval: 500
+        onTriggered: GlobalStates.superReleaseMightTrigger = false
+    }
     GlobalShortcut {
         name: "searchToggleRelease"
         description: "Toggles search on release"
 
         onPressed: {
             GlobalStates.superReleaseMightTrigger = true;
+            superHoldTimer.restart();
         }
 
         onReleased: {
+            superHoldTimer.stop();
             if (!GlobalStates.superReleaseMightTrigger) {
                 GlobalStates.superReleaseMightTrigger = true;
                 return;

@@ -82,3 +82,37 @@ end
 for _, k in ipairs({ "X", "SUPER + X", "Super_L", "Super_R", "SUPER + Super_L", "SUPER + Super_R", "code:53", "SUPER + code:53", "code:133", "code:134" }) do
     hl.bind(k, leaveXResize, { release = true, submap_universal = true, non_consuming = true })
 end
+
+-- A minimized window that gets focus (dock click, Alt+Tab) returns to the current
+-- workspace instead of opening special:minimized on screen. Runs inside Hyprland.
+hl.on("window.active", function(win)
+    if not win or not win.workspace or win.workspace.name ~= "special:minimized" then return end
+    local mon = hl.get_active_monitor()
+    local ws = mon and mon.active_workspace
+    if not ws then return end
+    hl.dispatch(hl.dsp.window.move({ workspace = ws.id, window = "address:" .. win.address }))
+    if mon.active_special_workspace then
+        hl.dispatch(hl.dsp.workspace.toggle_special("minimized"))
+    end
+    hl.dispatch(hl.dsp.focus({ window = "address:" .. win.address }))
+end)
+
+-- Alt+Tab window picker (quickshell altTab module). Hold Alt, Tab cycles, release Alt focuses.
+local qsIpcAlt = "qs -c $qsConfig ipc call altTab"
+local altTabOpen = false
+for _, k in ipairs({ "ALT + Tab", "ALT + SHIFT + Tab" }) do hl.unbind(k) end
+hl.bind("ALT + Tab", function()
+    altTabOpen = true
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " next || hyprctl dispatch 'hl.dsp.focus({ last = true })'"))
+end, { description = "Window: Alt+Tab picker (next)" })
+hl.bind("ALT + SHIFT + Tab", function()
+    altTabOpen = true
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " prev || hyprctl dispatch 'hl.dsp.focus({ last = true })'"))
+end, { description = "Window: Alt+Tab picker (previous)" })
+for _, k in ipairs({ "ALT_L", "ALT_R" }) do
+    hl.bind(k, function()
+        if not altTabOpen then return end
+        altTabOpen = false
+        hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
+    end, { release = true, ignore_mods = true, transparent = true })
+end

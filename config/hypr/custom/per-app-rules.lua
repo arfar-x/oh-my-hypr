@@ -32,3 +32,13 @@ hl.layer_rule({
     ignore_alpha = 0.10,
 })
 
+
+-- Alt+Tab picker: frosted glass like kitty/telegram/vscode.
+-- xray off so the blur samples the windows behind it, not just the wallpaper.
+hl.layer_rule({
+    name = "alttab-blur",
+    match = { namespace = "^quickshell:altTab$" },
+    blur = true,
+    ignore_alpha = 0.1,
+    xray = false,
+})

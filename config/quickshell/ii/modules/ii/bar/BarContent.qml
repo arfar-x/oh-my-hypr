@@ -353,6 +353,12 @@ Item { // Bar content region
                 Layout.fillHeight: true
             }
 
+            // Public IP
+            BarGroup {
+                Layout.rightMargin: 4
+                PublicIpWidget {}
+            }
+
             // Weather
             Loader {
                 Layout.leftMargin: 4

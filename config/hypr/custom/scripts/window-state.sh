@@ -20,7 +20,7 @@ minimize)
     read -r mx my < <(hyprctl monitors -j | jq -r --argjson m "$mon" '.[]|select(.id==$m)|"\(.x) \(.y)"')
     read -r wx wy ww wh mname < <(hyprctl clients -j | jq -r --arg a "$addr" '.[]|select(.address==$a)|"\(.at[0]) \(.at[1]) \(.size[0]) \(.size[1]) \(.monitor)"')
     mname=$(hyprctl monitors -j | jq -r --argjson m "$mon" '.[]|select(.id==$m)|.name')
-    qs -c ii ipc call minimizeFx run "$addr" $((wx - mx)) $((wy - my)) "$ww" "$wh" "$mname" >/dev/null 2>&1 && sleep 0.12
+    qs -c ii ipc call minimizeFx run "$addr" $((wx - mx)) $((wy - my)) "$ww" "$wh" "$mname" >/dev/null 2>&1 && sleep 0.08
     park "$addr" minimized
     # no_focus_fallback leaves focus on the hidden window; hand it to the next one
     ws=$(jq -r '.workspace.id' <<<"$win")

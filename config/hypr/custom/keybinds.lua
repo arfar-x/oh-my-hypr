@@ -181,3 +181,17 @@ for _, k in ipairs({ "ALT_L", "ALT_R" }) do
         hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
     end, { release = true, ignore_mods = true, transparent = true, submap_universal = true })
 end
+
+-- Any key pressed while Super is held cancels the "tap Super = open launcher" release action.
+-- Without this, quickshell's searchToggleRelease fires on every Super release (Super+T, minimize...)
+-- and opens the launcher. Upstream does this with a catchall bind, but Hyprland's Lua API only
+-- allows catchall inside submaps, so we watch raw key events instead.
+-- keycodes: 133 = Super_L, 134 = Super_R (evdev + 8).
+local superHeld = {}
+hl.on("input.keyboard.key", function(keycode, _, state)
+    if keycode == 133 or keycode == 134 then
+        superHeld[keycode] = (state == 1) or nil
+    elseif state == 1 and (superHeld[133] or superHeld[134]) then
+        hl.dispatch(hl.dsp.global("quickshell:searchToggleReleaseInterrupt"))
+    end
+end)

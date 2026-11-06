@@ -129,7 +129,7 @@ local function rectOf(w)
     return x, y, ww, hh
 end
 
-hl.on("window.active", function(win)
+local function parkOverlappingFloating(win)
     if not win or win.floating or not win.workspace or win.workspace.id < 0 then return end
     local ax, ay, aw, ah = rectOf(win)
     for _, w in ipairs(hl.get_workspace_windows(win.workspace.id)) do
@@ -143,7 +143,12 @@ hl.on("window.active", function(win)
             end
         end
     end
-end)
+end
+
+-- Only an actual click triggers it. Hover focus (follow_mouse) must not park floating windows
+-- such as Settings just because the pointer crossed a tiled window. The click passes through.
+hl.bind("mouse:272", function() parkOverlappingFloating(hl.get_active_window()) end,
+    { non_consuming = true, description = "Window: park floating windows behind a clicked tiled window" })
 
 -- Alt+Tab window picker (quickshell altTab module). Hold Alt, Tab cycles, arrows move, release Alt focuses.
 -- While the picker is open we sit in the "alt-tab" submap so Alt+Arrows only navigate the picker;

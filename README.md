@@ -16,6 +16,7 @@ Remove everything again: `./uninstall.sh` (`--dry-run` to preview). Restores the
 - **quickshell/ii** – overview with browsable app list (IdleAppBrowser), category chips, pinned apps, letter sections.
 - **quickshell/ii/modules/ii/altTab** – Alt+Tab picker: live thumbnails, minimized windows included, hover close button, frosted background; registered in panelFamilies/IllogicalImpulseFamily.qml.
 - **quickshell/ii/modules/ii/minimizeFx** – snapshot of the window shrinks toward the dock when minimized; called over IPC by window-state.sh.
+- **quickshell/ii/modules/ii/bar/NetworkPopup.qml** – separate network button in the bar (replaces the icon inside the right sidebar button); click opens a popup with the Wi-Fi switch, nearby networks (connect, password prompt) and VPN on/off switches. VPN listing/toggle lives in services/Network.qml; BarContent.qml and GlobalStates.qml carry the small wiring edits.
 - **state/terminal** – kitty-theme.conf + sequences.txt, the generated terminal palette (kitty colors and fish/starship color sequences) pinned so kitty and fish look identical on a new machine. The kitty and fish configs themselves are stock end-4; kitty's 80% opacity + blur comes from per-app-rules.lua. end-4 overwrites the palette when the wallpaper/theme changes.
 
 Requires fuzzel, kitty, fish, starship, eza, ttf-jetbrains-mono-nerd. Written against dots-hyprland commit 2f2a376.

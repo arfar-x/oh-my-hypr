@@ -39,7 +39,11 @@ done
 fc-match "JetBrains Mono Nerd Font" | grep -qi "JetBrainsMono Nerd Font" || echo "WARNING: JetBrains Mono Nerd Font missing (pacman -S ttf-jetbrains-mono-nerd)"
 
 if [ "$CHANGED" = 1 ]; then
-  command -v hyprctl >/dev/null && hyprctl reload || true
+  if command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1; then
+    echo "Reloaded Hyprland."
+  else
+    echo "NOTE: Hyprland was not reloaded (no running session here). Log in to Hyprland, or run 'hyprctl reload' inside it, for the rules to take effect."
+  fi
   echo "Done. Restart quickshell to load QML changes: killall qs quickshell; qs -c ii &"
 else
   echo "Already up to date."

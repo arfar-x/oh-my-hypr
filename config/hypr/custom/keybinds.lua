@@ -102,11 +102,13 @@ end
 
 -- A minimized window that gets focus (dock click, Alt+Tab) returns to the current
 -- workspace instead of opening special:minimized on screen. Runs inside Hyprland.
-local restoredAt = {}  -- address -> os.time(); keeps the park hook from re-hiding a just-restored window
+local restoredAt = {}  -- address -> true for 400ms; keeps the park hook from re-hiding a just-restored window
 
 hl.on("window.active", function(win)
     if not win or not win.workspace or win.workspace.name ~= "special:minimized" then return end
-    restoredAt[win.address] = os.time()
+    local addr = win.address
+    restoredAt[addr] = true
+    hl.timer(function() restoredAt[addr] = nil end, { timeout = 400, type = "oneshot" })
     local mon = hl.get_active_monitor()
     local ws = mon and mon.active_workspace
     if not ws then return end
@@ -132,7 +134,7 @@ hl.on("window.active", function(win)
     local ax, ay, aw, ah = rectOf(win)
     for _, w in ipairs(hl.get_workspace_windows(win.workspace.id)) do
         if w.floating and w.mapped and not w.pinned and w.address ~= win.address
-            and os.time() - (restoredAt[w.address] or 0) > 3 then
+            and not restoredAt[w.address] then
             local x, y, ww, hh = rectOf(w)
             if x < ax + aw and ax < x + ww and y < ay + ah and ay < y + hh then
                 local f = io.open((os.getenv("XDG_RUNTIME_DIR") or "/tmp") .. "/hypr-window-state/minimized", "a")

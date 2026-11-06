@@ -197,3 +197,9 @@ hl.on("input.keyboard.key", function(keycode, _, state)
         hl.dispatch(hl.dsp.global("quickshell:searchToggleReleaseInterrupt"))
     end
 end)
+
+-- Mouse buttons/scroll with Super held (drag-move/resize, workspace scroll) also count as a
+-- Super combo; the raw keyboard hook above can't see them, so cancel the tap-Super launcher here.
+for _, k in ipairs({ "mouse:272", "mouse:273", "mouse:274", "mouse_down", "mouse_up" }) do
+    hl.bind("SUPER + " .. k, hl.dsp.global("quickshell:searchToggleReleaseInterrupt"), { non_consuming = true })
+end

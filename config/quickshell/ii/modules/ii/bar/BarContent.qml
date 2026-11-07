@@ -324,8 +324,14 @@ Item { // Bar content region
                 colBackgroundToggled: Appearance.colors.colSecondaryContainer
                 colBackgroundToggledHover: Appearance.colors.colSecondaryContainerHover
                 colRippleToggled: Appearance.colors.colSecondaryContainerActive
-                toggled: GlobalStates.networkPopupOpen
-                onPressed: GlobalStates.networkPopupOpen = !GlobalStates.networkPopupOpen
+                toggled: GlobalStates.networkPopupOpen && GlobalStates.networkPopupScreen === (root.screen?.name ?? "")
+                onPressed: {
+                    const name = root.screen?.name ?? "";
+                    // Clicking this screen's icon while its popup is open closes it; otherwise open it on this screen
+                    const closing = GlobalStates.networkPopupOpen && GlobalStates.networkPopupScreen === name;
+                    GlobalStates.networkPopupScreen = name;
+                    GlobalStates.networkPopupOpen = !closing;
+                }
 
                 contentItem: MaterialSymbol {
                     anchors.centerIn: parent

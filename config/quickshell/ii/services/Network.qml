@@ -158,7 +158,8 @@ Singleton {
             }
         }
         onExited: (exitCode, exitStatus) => {
-            root.wifiConnectTarget.askingPassword = (exitCode !== 0)
+            if (root.wifiConnectTarget)
+                root.wifiConnectTarget.askingPassword = (exitCode !== 0)
             root.wifiConnectTarget = null
         }
     }
@@ -182,10 +183,12 @@ Singleton {
         id: rescanProcess
         command: ["nmcli", "dev", "wifi", "list", "--rescan", "yes"]
         stdout: SplitParser {
-            onRead: {
-                wifiScanning = false;
-                getNetworks.running = true;
-            }
+            onRead: getNetworks.running = true
+        }
+        // Always clear the scanning flag, even if the scan prints nothing or fails
+        onExited: {
+            root.wifiScanning = false;
+            getNetworks.running = true;
         }
     }
 
@@ -346,7 +349,7 @@ Singleton {
 
                 const destroyed = rNetworks.filter(rn => !wifiNetworks.find(n => n.frequency === rn.frequency && n.ssid === rn.ssid && n.bssid === rn.bssid));
                 for (const network of destroyed)
-                    rNetworks.splice(rNetworks.indexOf(network), 1).forEach(n => n.destroy());
+                    rNetworks.splice(rNetworks.indexOf(network), 1).forEach(n => n.destroy(500)); // delay so list delegates drop references first
 
                 for (const network of wifiNetworks) {
                     const match = rNetworks.find(n => n.frequency === network.frequency && n.ssid === network.ssid && n.bssid === network.bssid);

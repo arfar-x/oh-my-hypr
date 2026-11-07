@@ -13,11 +13,37 @@ import Quickshell.Hyprland
 LazyLoader {
     id: root
     property Item anchorItem
-    active: GlobalStates.networkPopupOpen
+    // Every screen's bar instantiates this popup; only the one on the screen whose
+    // icon was clicked opens (otherwise the popups' focus grabs clear each other).
+    readonly property string screenName: root.anchorItem?.QsWindow?.window?.screen?.name ?? ""
+    readonly property bool wanted: GlobalStates.networkPopupOpen && screenName === GlobalStates.networkPopupScreen
+    // Keep the window alive while the close animation plays
+    property bool keepAlive: false
+    active: wanted || keepAlive
+    onWantedChanged: {
+        if (wanted) {
+            root.closeTimer.stop();
+            keepAlive = true;
+        } else {
+            root.closeTimer.restart();
+        }
+    }
+    // (a property, not a child: LazyLoader's default property is the lazy component)
+    readonly property Timer closeTimer: Timer {
+        interval: 220
+        onTriggered: root.keepAlive = false
+    }
 
     component: PanelWindow {
         id: popupWindow
+        screen: root.anchorItem?.QsWindow?.window?.screen ?? null
         color: "transparent"
+
+        // false at creation, flipped on so the enter animation plays; follows the loader afterwards
+        property bool show: false
+        // The window has no size on its first frame, which makes the popup's x jump from the left
+        // edge to its anchor; stay invisible until it has been laid out.
+        readonly property bool ready: width > 0 && popupBackground.width > 0
 
         anchors.top: !Config.options.bar.bottom
         anchors.bottom: Config.options.bar.bottom
@@ -29,7 +55,9 @@ LazyLoader {
             top: Appearance.sizes.barHeight
             bottom: Appearance.sizes.barHeight
         }
-        implicitHeight: popupBackground.implicitHeight + Appearance.sizes.elevationMargin * 2
+        // Fixed height (the popup's maximum): resizing a layer surface while it is open makes it blink.
+        // The mask below keeps clicks outside the visible popup going to the windows behind it.
+        implicitHeight: 560 + Appearance.sizes.elevationMargin * 2
         mask: Region { item: popupBackground }
 
         WlrLayershell.namespace: "quickshell:networkPopup"
@@ -38,16 +66,29 @@ LazyLoader {
 
         HyprlandFocusGrab {
             windows: [popupWindow]
-            active: true
+            active: popupWindow.show
             onCleared: GlobalStates.networkPopupOpen = false
         }
 
         Component.onCompleted: {
-            Network.refreshVpns();
-            Network.rescanWifi();
+            show = Qt.binding(() => root.wanted);
+            scanTimer.start();
         }
 
-        StyledRectangularShadow { target: popupBackground }
+        // Rescanning rebuilds the list and would stall the enter animation, so do it right after
+        Timer {
+            id: scanTimer
+            interval: 260
+            onTriggered: {
+                Network.refreshVpns();
+                Network.rescanWifi();
+            }
+        }
+
+        StyledRectangularShadow {
+            target: popupBackground
+            opacity: popupBackground.opacity
+        }
 
         Rectangle {
             id: popupBackground
@@ -55,7 +96,22 @@ LazyLoader {
             x: Math.max(Appearance.sizes.elevationMargin,
                 Math.min(popupWindow.width - width - Appearance.sizes.elevationMargin,
                     (root.anchorItem && root.QsWindow ? root.QsWindow.mapFromItem(root.anchorItem, root.anchorItem.width / 2, 0).x : popupWindow.width) - width / 2))
-            y: Appearance.sizes.elevationMargin
+            y: Appearance.sizes.elevationMargin + ((popupWindow.show && popupWindow.ready) ? 0 : -8)
+            // No opacity fade: while translucent, Hyprland's layer blur shows a bright blurred
+            // wallpaper through the popup, which reads as a flash. Slide/scale only.
+            opacity: popupWindow.ready ? 1 : 0
+            scale: popupWindow.show ? 1 : 0.97
+            transformOrigin: Item.Top
+            Behavior on y { animation: popupAnim.createObject(this) }
+            Behavior on scale { animation: popupAnim.createObject(this) }
+            Component {
+                id: popupAnim
+                NumberAnimation {
+                    duration: popupWindow.show ? 220 : 150
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: popupWindow.show ? Appearance.animationCurves.emphasizedDecel : Appearance.animationCurves.emphasizedAccel
+                }
+            }
             implicitWidth: 340
             implicitHeight: Math.min(560, content.implicitHeight + pad * 2)
             color: Appearance.m3colors.m3surfaceContainer
@@ -91,7 +147,8 @@ LazyLoader {
                 }
 
                 StyledIndeterminateProgressBar {
-                    visible: Network.wifiScanning
+                    // always takes its space so the popup doesn't change height when a scan starts/ends
+                    opacity: Network.wifiScanning ? 1 : 0
                     Layout.fillWidth: true
                 }
 

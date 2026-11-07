@@ -132,7 +132,7 @@ local function rectOf(w)
 end
 
 local function parkOverlappingFloating(win)
-    if not win or win.floating or not win.workspace or win.workspace.id < 0 then return end
+    if not win or win.floating or not win.workspace or not win.workspace.id or win.workspace.id < 0 then return end
     local ax, ay, aw, ah = rectOf(win)
     for _, w in ipairs(hl.get_workspace_windows(win.workspace.id)) do
         if w.floating and w.mapped and not w.pinned and w.address ~= win.address

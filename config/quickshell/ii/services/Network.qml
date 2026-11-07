@@ -33,6 +33,8 @@ Singleton {
     property string wifiStatus: "disconnected"
 
     property string networkName: ""
+    property string ethernetName: "" // active wired connection profile, empty when none
+    property string ethernetDevice: ""
     property int networkStrength
     property string materialSymbol: root.ethernet
         ? "lan"
@@ -199,6 +201,27 @@ Singleton {
         wifiStatusProcess.running = true
         updateNetworkName.running = true;
         updateNetworkStrength.running = true;
+        updateEthernetName.running = true;
+    }
+
+    Process {
+        id: updateEthernetName
+        running: true
+        command: ["sh", "-c", "nmcli -t -f NAME,TYPE,DEVICE con show --active | grep ':802-3-ethernet:' | head -1"]
+        environment: ({ LANG: "C", LC_ALL: "C" })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const line = text.trim();
+                if (line.length === 0) {
+                    root.ethernetName = "";
+                    root.ethernetDevice = "";
+                    return;
+                }
+                const parts = line.replace(/\\:/g, "\u0000").split(":").map(x => x.replace(/\u0000/g, ":"));
+                root.ethernetName = parts[0];
+                root.ethernetDevice = parts[2] ?? "";
+            }
+        }
     }
 
     Process {

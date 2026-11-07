@@ -127,6 +127,49 @@ LazyLoader {
                 anchors { fill: parent; margins: popupBackground.pad }
                 spacing: 6
 
+                // Current wired connection, shown first (the Wi-Fi list below already puts the active network on top)
+                Rectangle {
+                    visible: Network.ethernet && Network.ethernetName.length > 0
+                    Layout.fillWidth: true
+                    implicitHeight: ethRow.implicitHeight + 16
+                    radius: Appearance.rounding.small
+                    color: Appearance.colors.colSecondaryContainer
+
+                    RowLayout {
+                        id: ethRow
+                        anchors { fill: parent; margins: 8 }
+                        spacing: 10
+                        MaterialSymbol {
+                            text: "lan"
+                            iconSize: Appearance.font.pixelSize.larger
+                            color: Appearance.m3colors.m3onSecondaryContainer
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 0
+                            StyledText {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                text: Network.ethernetName
+                                color: Appearance.m3colors.m3onSecondaryContainer
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                text: Translation.tr("Connected") + (Network.ethernetDevice.length > 0 ? " · " + Network.ethernetDevice : "")
+                                font.pixelSize: Appearance.font.pixelSize.smaller
+                                color: Appearance.m3colors.m3onSecondaryContainer
+                                opacity: 0.75
+                            }
+                        }
+                        MaterialSymbol {
+                            text: "check"
+                            iconSize: Appearance.font.pixelSize.larger
+                            color: Appearance.m3colors.m3onSecondaryContainer
+                        }
+                    }
+                }
+
                 RowLayout {
                     Layout.fillWidth: true
                     MaterialSymbol {

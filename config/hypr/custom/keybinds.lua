@@ -1,6 +1,6 @@
 hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/keybinds.lua"), {description = "Edit user keybinds"} )
 
-hl.bind("SUPER + Space", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"), {description = "Input: Switch keyboard layout"})
+hl.bind("SUPER + Space", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/switch-layout.sh"), {description = "Input: Switch keyboard layout"})
 
 hl.bind("ALT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })
 hl.bind("ALT + SHIFT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })
@@ -58,10 +58,12 @@ hl.bind("SUPER + Z", function()
     local w = hl.get_active_window()
     if not w then return end
     if w.floating then
+        hl.dispatch(hl.dsp.window.tag({ tag = "-zfloat", window = "address:" .. w.address }))
         hl.dispatch(hl.dsp.window.float({ action = "disable", window = "address:" .. w.address }))
         return
     end
     local mon = w.monitor or hl.get_active_monitor()
+    hl.dispatch(hl.dsp.window.tag({ tag = "+zfloat", window = "address:" .. w.address }))
     hl.dispatch(hl.dsp.window.float({ action = "enable", window = "address:" .. w.address }))
     if mon then
         local tw, th = math.floor(mon.width * 0.7), math.floor(mon.height * 0.7)
@@ -130,7 +132,7 @@ local function rectOf(w)
 end
 
 local function parkOverlappingFloating(win)
-    if not win or win.floating or not win.workspace or win.workspace.id < 0 then return end
+    if not win or win.floating or not win.workspace or not win.workspace.id or win.workspace.id < 0 then return end
     local ax, ay, aw, ah = rectOf(win)
     for _, w in ipairs(hl.get_workspace_windows(win.workspace.id)) do
         if w.floating and w.mapped and not w.pinned and w.address ~= win.address
@@ -180,4 +182,29 @@ for _, k in ipairs({ "ALT_L", "ALT_R" }) do
         hl.dispatch(hl.dsp.submap("reset"))
         hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
     end, { release = true, ignore_mods = true, transparent = true, submap_universal = true })
+end
+
+-- Any key pressed while Super is held cancels the "tap Super = open launcher" release action.
+-- Without this, quickshell's searchToggleRelease fires on every Super release (Super+T, minimize...)
+-- and opens the launcher. Upstream does this with a catchall bind, but Hyprland's Lua API only
+-- allows catchall inside submaps, so we watch raw key events instead.
+-- keycodes: 133 = Super_L, 134 = Super_R (evdev + 8).
+local superHeld = {}
+hl.on("input.keyboard.key", function(keycode, _, state)
+    -- Leave the Super+X resize mode when X or Super is released. The release binds above are
+    -- not delivered reliably while a mouse button is held, so this raw event is the safety net.
+    if state == 0 and (keycode == 53 or keycode == 133 or keycode == 134) then
+        leaveXResize()
+    end
+    if keycode == 133 or keycode == 134 then
+        superHeld[keycode] = (state == 1) or nil
+    elseif state == 1 and (superHeld[133] or superHeld[134]) then
+        hl.dispatch(hl.dsp.global("quickshell:searchToggleReleaseInterrupt"))
+    end
+end)
+
+-- Mouse buttons/scroll with Super held (drag-move/resize, workspace scroll) also count as a
+-- Super combo; the raw keyboard hook above can't see them, so cancel the tap-Super launcher here.
+for _, k in ipairs({ "mouse:272", "mouse:273", "mouse:274", "mouse_down", "mouse_up" }) do
+    hl.bind("SUPER + " .. k, hl.dsp.global("quickshell:searchToggleReleaseInterrupt"), { non_consuming = true })
 end

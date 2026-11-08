@@ -13,9 +13,12 @@ Singleton {
     property bool crosshairOpen: false
     property bool sidebarLeftOpen: false
     property bool sidebarRightOpen: false
+    property bool networkPopupOpen: false
+    property string networkPopupScreen: "" // name of the screen whose bar opened the network popup
     property bool mediaControlsOpen: false
     property bool osdBrightnessOpen: false
     property bool osdVolumeOpen: false
+    property string osdLayoutLabel: ""
     property bool oskOpen: false
     property bool overlayOpen: false
     property bool overviewOpen: false

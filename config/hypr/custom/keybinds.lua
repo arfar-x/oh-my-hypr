@@ -1,6 +1,6 @@
 hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/keybinds.lua"), {description = "Edit user keybinds"} )
 
-hl.bind("SUPER + Space", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"), {description = "Input: Switch keyboard layout"})
+hl.bind("SUPER + Space", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/switch-layout.sh"), {description = "Input: Switch keyboard layout"})
 
 hl.bind("ALT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })
 hl.bind("ALT + SHIFT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })

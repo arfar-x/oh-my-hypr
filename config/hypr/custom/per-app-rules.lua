@@ -1,25 +1,22 @@
 -- Per-application window rules.
 
--- VS Code: match HyDE's 80% opacity and allow Hyprland to blur behind it.
-hl.window_rule({
-    match = {class = "^(code-oss|[Cc]ode|codium|vscodium)$"},
-    opacity = "0.8 override 0.8 override 1.0 override",
-    no_blur = false
-})
+-- Frosted-glass windows: translucent with Hyprland blur behind them.
+-- Hyprland's opacity applies to the whole window, text included, so text-heavy apps
+-- get a higher focused value for readability. Unfocused windows stay at the base glass level.
+local GLASS = 0.8
 
--- Kitty: match HyDE's 80% opacity and allow Hyprland to blur behind it.
-hl.window_rule({
-    match = {class = "^kitty$"},
-    opacity = "0.8 override 0.8 override 1.0 override",
-    no_blur = false
-})
+local function glass(class, focused)
+    hl.window_rule({
+        match = {class = class},
+        opacity = string.format("%s override %s override 1.0 override", focused, GLASS),
+        no_blur = false
+    })
+end
 
--- Telegram: same translucency + blur as VS Code.
-hl.window_rule({
-    match = {class = "^org\\.telegram\\.desktop$"},
-    opacity = "0.8 override 0.8 override 1.0 override",
-    no_blur = false
-})
+glass("^(code-oss|[Cc]ode|codium|vscodium)$", 0.92) -- VS Code: dense small text
+glass("^kitty$", GLASS)
+glass("^org\\.telegram\\.desktop$", 0.90) -- Telegram: chat text
+glass("^com\\.nousresearch\\.hermes$", 0.90) -- Hermes: chat text
 
 -- Fuzzel: frosted glass
 hl.layer_rule({

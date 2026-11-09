@@ -109,10 +109,13 @@ Scope {
         function down(): void { root.move(0, 1); }
     }
 
+    Variants { // one picker per monitor, so nothing has to move when focus jumps between screens
+    model: Quickshell.screens
     PanelWindow {
         id: panel
-        visible: root.shown
-        screen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
+        required property var modelData
+        visible: root.shown || strip.opacity > 0
+        screen: modelData
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altTab"
@@ -122,6 +125,7 @@ Scope {
 
         MouseArea { // click outside the strip cancels
             anchors.fill: parent
+            enabled: root.shown
             onClicked: root.finish(false)
         }
 
@@ -139,8 +143,10 @@ Scope {
             border.color: Appearance.colors.colLayer0Border
             opacity: root.shown ? 1 : 0
             scale: root.shown ? 1 : 0.94
-            Behavior on opacity { NumberAnimation { duration: 120 } }
-            Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+            // open eases in; close is deliberately short because Hyprland's layer blur
+            // stays at full strength until the window unmaps
+            Behavior on opacity { NumberAnimation { duration: root.shown ? 120 : 80; easing.type: Easing.OutCubic } }
+            Behavior on scale { NumberAnimation { duration: root.shown ? 140 : 80; easing.type: Easing.OutCubic } }
 
             Flow {
                 anchors.centerIn: parent
@@ -239,5 +245,6 @@ Scope {
                 }
             }
         }
+    }
     }
 }

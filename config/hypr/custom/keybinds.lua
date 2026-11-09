@@ -196,6 +196,13 @@ hl.on("input.keyboard.key", function(keycode, _, state)
     if state == 0 and (keycode == 53 or keycode == 133 or keycode == 134) then
         leaveXResize()
     end
+    -- Safety net for the Alt+Tab picker: the Alt release bind is not delivered reliably while the
+    -- pointer sits on the picker overlay, which left it stuck open. keycodes: 64 = Alt_L, 108 = Alt_R.
+    if state == 0 and (keycode == 64 or keycode == 108) and altTabOpen then
+        altTabOpen = false
+        hl.dispatch(hl.dsp.submap("reset"))
+        hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
+    end
     if keycode == 133 or keycode == 134 then
         superHeld[keycode] = (state == 1) or nil
     elseif state == 1 and (superHeld[133] or superHeld[134]) then

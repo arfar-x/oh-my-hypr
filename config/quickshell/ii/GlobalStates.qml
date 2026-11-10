@@ -19,6 +19,7 @@ Singleton {
     property bool osdBrightnessOpen: false
     property bool osdVolumeOpen: false
     property string osdLayoutLabel: ""
+    property string osdLayoutIcon: "" // optional Material symbol shown before the label
     property bool oskOpen: false
     property bool overlayOpen: false
     property bool overviewOpen: false

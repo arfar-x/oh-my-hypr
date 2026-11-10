@@ -9,6 +9,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Services.UPower
 
 Scope {
     id: root
@@ -84,6 +85,26 @@ Scope {
         function onGammaChangeAttempt() {
             root.protectionMessage = "";
             root.currentIndicator = "gamma";
+            root.triggerOsd();
+        }
+    }
+
+    Connections {
+        // Announce power profile changes with the same pill used for the keyboard layout
+        target: PowerProfiles
+        function onProfileChanged() {
+            const names = {};
+            names[PowerProfile.PowerSaver] = Translation.tr("Power saver");
+            names[PowerProfile.Balanced] = Translation.tr("Balanced");
+            names[PowerProfile.Performance] = Translation.tr("Performance");
+            const icons = {};
+            icons[PowerProfile.PowerSaver] = "energy_savings_leaf";
+            icons[PowerProfile.Balanced] = "airwave";
+            icons[PowerProfile.Performance] = "local_fire_department";
+            GlobalStates.osdLayoutIcon = icons[PowerProfiles.profile] ?? "";
+            GlobalStates.osdLayoutLabel = Translation.tr("Switched to %1").arg(names[PowerProfiles.profile] ?? "");
+            root.protectionMessage = "";
+            root.currentIndicator = "layout";
             root.triggerOsd();
         }
     }
@@ -250,6 +271,7 @@ Scope {
         }
 
         function layout(label: string) {
+            GlobalStates.osdLayoutIcon = "";
             GlobalStates.osdLayoutLabel = label;
             root.protectionMessage = "";
             root.currentIndicator = "layout";

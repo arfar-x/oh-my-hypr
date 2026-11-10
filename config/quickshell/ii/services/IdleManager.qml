@@ -21,13 +21,14 @@ Item {
         Quickshell.execDetached([
             Quickshell.shellPath("scripts/idle/apply.sh"),
             String(cfg.dimTimeout), String(cfg.dimBrightness),
-            String(cfg.lockTimeout), String(cfg.screenOffTimeout), String(cfg.suspendTimeout)
+            String(cfg.lockTimeout), String(cfg.screenOffTimeout), String(cfg.suspendTimeout),
+            String(cfg.screensaverTimeout), Config.options.idle.screensaverStyle
         ]);
     }
 
     // Re-evaluated whenever the profile or any of its values change
     readonly property string signature: cfg
-        ? [profileKey, cfg.dimTimeout, cfg.dimBrightness, cfg.lockTimeout, cfg.screenOffTimeout, cfg.suspendTimeout].join(",")
+        ? [profileKey, cfg.dimTimeout, cfg.dimBrightness, cfg.lockTimeout, cfg.screenOffTimeout, cfg.suspendTimeout, cfg.screensaverTimeout, Config.options.idle.screensaverStyle].join(",")
         : ""
     onSignatureChanged: if (signature !== "") applyTimer.restart()
 

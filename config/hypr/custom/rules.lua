@@ -9,3 +9,9 @@ hl.layer_rule({ match = { namespace = "quickshell:overview" }, xray = false })
 
 -- The network popup animates itself (slide/scale in QML); Hyprland's own layer animation would stack on top
 hl.layer_rule({ match = { namespace = "^quickshell:networkPopup$" }, no_anim = true })
+
+-- Screensaver overlay: blur what is behind it so the windows underneath are not legible through the dimming
+hl.layer_rule({ match = { namespace = "^ii-screensaver$" }, blur = true })
+hl.layer_rule({ match = { namespace = "^ii-screensaver$" }, ignore_alpha = 0 })
+hl.layer_rule({ match = { namespace = "^ii-screensaver$" }, xray = false })
+hl.layer_rule({ match = { namespace = "^ii-screensaver$" }, no_anim = true })

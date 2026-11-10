@@ -372,10 +372,13 @@ Singleton {
             }
 
             property JsonObject idle: JsonObject {
+                property string screensaverStyle: "random" // random | matrix | bonsai | hollywood | genact
+                property string screensaverBackdrop: "desktop" // desktop | wallpaper
                 // Per power profile. Minutes of inactivity; 0 disables the step
                 property JsonObject powerSaver: JsonObject {
                     property int dimTimeout: 2
                     property int dimBrightness: 10 // percent
+                    property int screensaverTimeout: 0
                     property int lockTimeout: 3
                     property int screenOffTimeout: 5
                     property int suspendTimeout: 10
@@ -383,6 +386,7 @@ Singleton {
                 property JsonObject balanced: JsonObject {
                     property int dimTimeout: 0
                     property int dimBrightness: 10 // percent
+                    property int screensaverTimeout: 0
                     property int lockTimeout: 5
                     property int screenOffTimeout: 10
                     property int suspendTimeout: 15
@@ -390,6 +394,7 @@ Singleton {
                 property JsonObject performance: JsonObject {
                     property int dimTimeout: 0
                     property int dimBrightness: 10 // percent
+                    property int screensaverTimeout: 0
                     property int lockTimeout: 10
                     property int screenOffTimeout: 20
                     property int suspendTimeout: 0

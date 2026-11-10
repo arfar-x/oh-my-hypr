@@ -215,3 +215,16 @@ end)
 for _, k in ipairs({ "mouse:272", "mouse:273", "mouse:274", "mouse_down", "mouse_up" }) do
     hl.bind("SUPER + " .. k, hl.dsp.global("quickshell:searchToggleReleaseInterrupt"), { non_consuming = true })
 end
+
+
+hl.bind("CTRL + SUPER + Z", hl.dsp.exec_cmd("~/.config/quickshell/ii/scripts/idle/screensaver.sh toggle"), { description = "Utilities: Toggle screensaver" })
+
+-- Screensaver dismissal: while the screensaver runs this submap is active, and any key or mouse
+-- button leaves it and stops the screensaver, whatever animation is running in the terminal.
+local screensaverStop = "~/.config/quickshell/ii/scripts/idle/screensaver.sh stop"
+hl.define_submap("screensaver", function()
+    hl.bind("catchall", hl.dsp.exec_cmd(screensaverStop))
+    for _, b in ipairs({ "mouse:272", "mouse:273", "mouse:274", "mouse_down", "mouse_up" }) do
+        hl.bind(b, hl.dsp.exec_cmd(screensaverStop))
+    end
+end)

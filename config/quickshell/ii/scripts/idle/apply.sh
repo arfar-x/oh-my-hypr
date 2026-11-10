@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Usage: apply.sh <dim_min> <dim_percent> <lock_min> <dpms_min> <suspend_min>
+# Usage: apply.sh <dim_min> <dim_percent> <lock_min> <dpms_min> <suspend_min> [saver_min] [saver_style]
 # Regenerates ~/.config/hypr/hypridle.conf (0 minutes = step disabled) and restarts hypridle.
-dim=${1:-0}; dimpct=${2:-10}; lock=${3:-0}; dpms=${4:-0}; susp=${5:-0}
+dim=${1:-0}; dimpct=${2:-10}; lock=${3:-0}; dpms=${4:-0}; susp=${5:-0}; saver=${6:-0}; style=${7:-matrix}
+saverbin='~/.config/quickshell/ii/scripts/idle/screensaver.sh'
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hypridle.conf"
 
 {
@@ -23,6 +24,15 @@ listener {
     timeout = $((dim * 60))
     on-timeout = brightnessctl -s set ${dimpct}%
     on-resume = brightnessctl -r
+}
+H
+fi
+if [ "$saver" -gt 0 ]; then cat <<H
+
+listener {
+    timeout = $((saver * 60))
+    on-timeout = $saverbin start $style
+    on-resume = $saverbin stop
 }
 H
 fi
@@ -56,5 +66,5 @@ fi
 if cmp -s "$conf.tmp" "$conf"; then rm -f "$conf.tmp"; exit 0; fi
 mv "$conf.tmp" "$conf"
 
-pkill -x hypridle
+pkill -xf hypridle
 nohup hypridle >/dev/null 2>&1 &

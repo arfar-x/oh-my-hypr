@@ -176,6 +176,37 @@ ContentPage {
         }
 
         ContentSubsection {
+            title: Translation.tr("Screensaver style")
+            tooltip: Translation.tr("Runs fullscreen in a terminal. Any key or mouse movement closes it. Random picks among the installed ones.")
+            ConfigSelectionArray {
+                Layout.fillWidth: false
+                currentValue: Config.options.idle.screensaverStyle
+                onSelected: newValue => Config.options.idle.screensaverStyle = newValue
+                options: [
+                    { displayName: Translation.tr("Random"), icon: "shuffle", value: "random" },
+                    { displayName: Translation.tr("Matrix"), icon: "grid_on", value: "matrix" },
+                    { displayName: Translation.tr("Bonsai"), icon: "park", value: "bonsai" },
+                    { displayName: Translation.tr("Hollywood"), icon: "movie", value: "hollywood" },
+                    { displayName: Translation.tr("Genact"), icon: "terminal", value: "genact" }
+                ]
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Screensaver backdrop")
+            tooltip: Translation.tr("Desktop: your open windows, blurred and dimmed.\nWallpaper: only the wallpaper, dimmed.")
+            ConfigSelectionArray {
+                Layout.fillWidth: false
+                currentValue: Config.options.idle.screensaverBackdrop
+                onSelected: newValue => Config.options.idle.screensaverBackdrop = newValue
+                options: [
+                    { displayName: Translation.tr("Desktop"), icon: "desktop_windows", value: "desktop" },
+                    { displayName: Translation.tr("Wallpaper"), icon: "wallpaper", value: "wallpaper" }
+                ]
+            }
+        }
+
+        ContentSubsection {
             title: Translation.tr("Minutes of inactivity (0 = off)")
             IdleSpin {
                 icon: "brightness_low"
@@ -190,6 +221,13 @@ ContentPage {
                 key: "dimBrightness"
                 from: 0
                 to: 100
+            }
+            IdleSpin {
+                icon: "animation"
+                text: Translation.tr("Screensaver")
+                key: "screensaverTimeout"
+                from: 0
+                to: 240
             }
             IdleSpin {
                 icon: "lock"

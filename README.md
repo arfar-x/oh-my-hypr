@@ -2,7 +2,7 @@
 
 Personal customizations for a stock [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland) (illogical-impulse) install. `config/` mirrors `~/.config`; only files that differ from upstream are included.
 
-Apply: `./install.sh` (idempotent: overwrites only changed files, creates no backups or leftovers).
+Apply: `./install.sh` (idempotent: overwrites only changed files, creates no backups or leftovers). It also installs the packages the customizations need (power-profiles-daemon and hypridle/brightnessctl/jq for the Idle settings; kitty, cmatrix, genact, cbonsai and hollywood for the screensaver, the last two from the AUR), using sudo pacman and yay/paru, and enables power-profiles-daemon. Use `./install.sh --skip-deps` to skip that.
 
 Remove everything again: `./uninstall.sh` (`--dry-run` to preview). Restores the stock end-4 version of every file, deletes files this repo added, and has end-4 regenerate the terminal palette. Needs network access to fetch the stock files.
 

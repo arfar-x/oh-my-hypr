@@ -184,6 +184,37 @@ for _, k in ipairs({ "ALT_L", "ALT_R" }) do
     end, { release = true, ignore_mods = true, transparent = true, submap_universal = true })
 end
 
+-- Super+P display mode picker (quickshell displayMode module), same flow as Alt+Tab:
+-- hold Super, P cycles (Left/Right too), release Super applies, Escape cancels.
+-- The first press opens it on the current mode, so a quick tap changes nothing.
+-- Window pin moves to Super+Alt+P to make room.
+local qsIpcDisp = "qs -c $qsConfig ipc call displayMode"
+local displayOpen = false
+local function displayCall(cmd)
+    displayOpen = true
+    hl.dispatch(hl.dsp.submap("display-mode"))
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcDisp .. " " .. cmd))
+end
+local function displayEnd(cmd)
+    if not displayOpen then return end
+    displayOpen = false
+    hl.dispatch(hl.dsp.submap("reset"))
+    hl.dispatch(hl.dsp.exec_cmd(qsIpcDisp .. " " .. cmd))
+end
+hl.unbind("SUPER + P")
+hl.bind("SUPER + P", function() displayCall("open") end, { description = "Display: Mode picker (hold Super, P cycles)", submap_universal = true })
+hl.bind("SUPER + ALT + P", hl.dsp.window.pin(), { description = "Window: Pin" })
+hl.define_submap("display-mode", function()
+    for key, cmd in pairs({ Left = "left", Right = "right" }) do
+        hl.bind("SUPER + " .. key, hl.dsp.exec_cmd(qsIpcDisp .. " " .. cmd), { repeating = true })
+    end
+    hl.bind("Escape", function() displayEnd("cancel") end)
+end)
+for _, k in ipairs({ "SUPER_L", "SUPER_R" }) do
+    hl.bind(k, function() displayEnd("confirm") end,
+        { release = true, ignore_mods = true, transparent = true, submap_universal = true })
+end
+
 -- Any key pressed while Super is held cancels the "tap Super = open launcher" release action.
 -- Without this, quickshell's searchToggleRelease fires on every Super release (Super+T, minimize...)
 -- and opens the launcher. Upstream does this with a catchall bind, but Hyprland's Lua API only
@@ -202,6 +233,10 @@ hl.on("input.keyboard.key", function(keycode, _, state)
         altTabOpen = false
         hl.dispatch(hl.dsp.submap("reset"))
         hl.dispatch(hl.dsp.exec_cmd(qsIpcAlt .. " confirm"))
+    end
+    -- Safety net for the display picker, same reason: Super release must always apply/close it.
+    if state == 0 and (keycode == 133 or keycode == 134) then
+        displayEnd("confirm")
     end
     if keycode == 133 or keycode == 134 then
         superHeld[keycode] = (state == 1) or nil

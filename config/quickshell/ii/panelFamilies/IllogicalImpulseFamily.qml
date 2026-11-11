@@ -7,6 +7,7 @@ import qs.modules.ii.minimizeFx
 import qs.modules.ii.background
 import qs.modules.ii.bar
 import qs.modules.ii.cheatsheet
+import qs.modules.ii.displayMode
 import qs.modules.ii.dock
 import qs.modules.ii.lock
 import qs.modules.ii.mediaControls
@@ -28,6 +29,7 @@ import qs.modules.ii.wallpaperSelector
 Scope {
     PanelLoader { extraCondition: !Config.options.bar.vertical; component: Bar {} }
     PanelLoader { component: AltTab {} }
+    PanelLoader { component: DisplayMode {} }
     PanelLoader { component: MinimizeFx {} }
     PanelLoader { component: Background {} }
     PanelLoader { component: Cheatsheet {} }

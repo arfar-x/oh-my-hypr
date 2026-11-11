@@ -14,7 +14,9 @@ import Quickshell.Services.UPower
 Scope {
     id: root
     property string protectionMessage: ""
-    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name)
+    // focusedMonitor is null for a while after a monitor is turned off (Super+P single-display modes),
+    // so fall back to a remaining screen instead of leaving the OSD with nowhere to show.
+    property var focusedScreen: Quickshell.screens.find(s => s.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
 
     property string currentIndicator: "volume"
     property var indicators: [
@@ -272,6 +274,15 @@ Scope {
 
         function layout(label: string) {
             GlobalStates.osdLayoutIcon = "";
+            GlobalStates.osdLayoutLabel = label;
+            root.protectionMessage = "";
+            root.currentIndicator = "layout";
+            root.triggerOsd();
+        }
+
+        // Same pill as layout(), with a Material symbol before the label
+        function layoutIcon(icon: string, label: string) {
+            GlobalStates.osdLayoutIcon = icon;
             GlobalStates.osdLayoutLabel = label;
             root.protectionMessage = "";
             root.currentIndicator = "layout";

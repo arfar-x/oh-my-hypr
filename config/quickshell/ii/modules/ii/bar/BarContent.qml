@@ -347,6 +347,15 @@ Item { // Bar content region
                 }
             }
 
+            MaterialSymbol { // VPN connected indicator
+                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                visible: Network.vpnActive
+                text: "vpn_lock"
+                fill: 1
+                iconSize: Appearance.font.pixelSize.larger
+                color: Appearance.m3colors.m3primary
+            }
+
             SysTray {
                 visible: root.useShortenedForm === 0
                 Layout.fillWidth: false

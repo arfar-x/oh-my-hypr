@@ -61,6 +61,44 @@ Singleton {
         enableWifiProc.exec(["nmcli", "radio", "wifi", cmd]);
     }
 
+    // VPN state: true when any VPN/tunnel is up (NetworkManager VPN/WireGuard, or a tun/tap/wg/ppp-style interface)
+    property bool vpnActive: false
+    property bool vpnStateKnown: false
+    property string vpnLastName: ""
+    onVpnActiveChanged: {
+        if (!vpnStateKnown) return;
+        if (vpnActive) {
+            Quickshell.execDetached(["notify-send", "-a", "Network", "-i", "network-vpn", Translation.tr("VPN connected"), ""]);
+        } else {
+            Quickshell.execDetached(["notify-send", "-a", "Network", "-u", "critical", "-i", "network-vpn-disconnected",
+                Translation.tr("VPN disconnected"),
+                vpnLastName.length > 0 ? Translation.tr("Lost connection to %1. Your traffic is no longer protected.").arg(vpnLastName) : Translation.tr("Your traffic is no longer protected.")]);
+        }
+    }
+
+    Timer {
+        interval: 3000
+        running: true
+        repeat: true
+        onTriggered: vpnStateProc.running = true
+    }
+
+    Process {
+        id: vpnStateProc
+        running: true
+        command: ["sh", "-c", "n=$(nmcli -t -f TYPE,NAME con show --active | grep -E '^(vpn|wireguard|tun|ip-tunnel|gre|ppp):' | head -1 | cut -d: -f2-); if [ -n \"$n\" ]; then echo \"1:$n\"; elif ip -o link show up | grep -qE '^[0-9]+: (tun|tap|wg|ppp|tailscale|nordlynx|proton|zt)[^ ]*:'; then echo '1:'; else echo '0:'; fi"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const t = text.trim();
+                const on = t.startsWith("1");
+                const name = t.substring(2);
+                if (on && name.length > 0) root.vpnLastName = name;
+                root.vpnActive = on;
+                root.vpnStateKnown = true;
+            }
+        }
+    }
+
     // VPNs
     property var vpns: [] // [{name, uuid, type, active}]
     function toggleVpn(vpn): void {

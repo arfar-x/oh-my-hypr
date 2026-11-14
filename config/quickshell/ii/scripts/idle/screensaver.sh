@@ -61,7 +61,10 @@ start() {
         bonsai|cbonsai) cmd='cbonsai -l -i -t 0.02 -w 8 -L 90 -M 6 -b 2 -c "&,@" & p=$!; read -rsn1; kill $p' ;;
         hollywood)      cmd='hollywood' ;;
         genact)         cmd='genact' ;;
-        *)              cmd='cmatrix -s -B -C cyan' ;;
+        # cmatrix divides by the terminal size and dies with SIGFPE if the panel is still 0x0, so
+        # wait (up to ~3s) for a real size. If it still dies from a signal, fall back to cbonsai.
+        *)              cmd='for _ in $(seq 30); do [ "$(tput lines)" -gt 0 ] 2>/dev/null && [ "$(tput cols)" -gt 0 ] 2>/dev/null && break; sleep 0.1; done
+cmatrix -s -B -C cyan; [ $? -ge 128 ] && command -v cbonsai >/dev/null 2>&1 && { cbonsai -l -i -t 0.02 -w 8 -L 90 -M 6 -b 2 -c "&,@" & p=$!; read -rsn1; kill $p; }' ;;
     esac
     # The wrapper stops everything when its animation ends, but only if it is still the current run
     local token="$$-$RANDOM"

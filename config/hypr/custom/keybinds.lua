@@ -86,6 +86,61 @@ hl.define_submap("tmux-resize", function()
     hl.bind("CTRL + B", hl.dsp.submap("reset"))
 end)
 
+-- Cycle the active workspace's tiling model, tmux next-layout style:
+-- dwindle -> master(left) -> master(top) -> master(right) -> master(bottom).
+-- Only re-tiles tiled windows: floating windows keep their position, no window is
+-- ever maximized/fullscreened/minimized, and the press is a no-op while any window
+-- on the workspace is maximized/fullscreened or when fewer than 2 windows are tiled.
+local masterOrientation = {} -- per-workspace master orientation, kept in sync by this bind
+hl.bind("CTRL + SPACE", function()
+    local ws = hl.get_active_workspace()
+    local tiled = 0
+    for _, win in ipairs(hl.get_workspace_windows(ws.id)) do
+        if win.fullscreen ~= 0 then
+            return
+        end
+        if not win.floating then
+            tiled = tiled + 1
+        end
+    end
+    if tiled < 2 then
+        return
+    end
+    local models = {
+        { layout = "dwindle" },
+        { layout = "master", orientation = "left" },
+        { layout = "master", orientation = "top" },
+        { layout = "master", orientation = "right" },
+        { layout = "master", orientation = "bottom" },
+    }
+    local cur = 1
+    if ws.tiled_layout == "master" then
+        local o = masterOrientation[ws.id] or "left"
+        for i, m in ipairs(models) do
+            if m.orientation == o then
+                cur = i
+                break
+            end
+        end
+    elseif ws.tiled_layout ~= "dwindle" then
+        cur = 0 -- layout set externally (monocle/scrolling/custom): jump to the first model
+    end
+    local m = models[(cur % #models) + 1]
+    local switching = m.layout ~= ws.tiled_layout
+    if switching then
+        hl.workspace_rule({ workspace = tostring(ws.id), layout = m.layout })
+    end
+    if m.orientation then
+        masterOrientation[ws.id] = m.orientation
+        -- Layout switches apply asynchronously, and master always enters with
+        -- its default orientation (left) -- the model we cycle into -- so only
+        -- send an orientation message when we are already on master.
+        if not switching then
+            hl.dispatch(hl.dsp.layout("orientation" .. m.orientation))
+        end
+    end
+end, { description = "Layout: Cycle active workspace tiling model" })
+
 -- Hold Super+X, then Super+left-drag resizes the window; releasing X exits.
 hl.unbind("SUPER + X")
 hl.bind("SUPER + X", hl.dsp.submap("x-resize"), { description = "Window: hold + left-drag to resize" })

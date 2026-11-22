@@ -1,0 +1,11 @@
+[Unit]
+Description=Quickshell freeze watchdog (restarts the shell if its IPC goes deaf)
+# Only meaningful inside a Hyprland session where the shell is running.
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+# The watcher script itself decides whether the shell is actually frozen; if the
+# shell is healthy it does nothing. It never touches other clients.
+ExecStart=%h/.config/hypr/custom/scripts/shell-watchdog.sh

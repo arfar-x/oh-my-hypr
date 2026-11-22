@@ -1,0 +1,14 @@
+[Unit]
+Description=Run the quickshell freeze watchdog periodically
+PartOf=graphical-session.target
+
+[Timer]
+# First check shortly after login, then every 30s.
+OnActiveSec=20s
+OnUnitActiveSec=30s
+AccuracySec=5s
+# Keep watching even if a check is a little late.
+Persistent=false
+
+[Install]
+WantedBy=graphical-session.target

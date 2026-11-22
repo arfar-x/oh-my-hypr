@@ -1,5 +1,13 @@
 hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/keybinds.lua"), {description = "Edit user keybinds"} )
 
+-- Recover a frozen desktop shell (quickshell): restart ONLY the shell and reload
+-- the Hyprland config. Clients (terminals, opencode, browsers) are left running --
+-- a full compositor restart would kill every Wayland client, so we never do that here.
+-- $qsConfig is expanded by Hyprland before the script runs (it's not a process env var).
+hl.bind("ALT + F2",
+    hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/restart-shell.sh $qsConfig"),
+    { description = "Session: Restart shell (recover frozen shortcuts)" })
+
 hl.bind("SUPER + Space", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/switch-layout.sh"), {description = "Input: Switch keyboard layout"})
 
 hl.bind("ALT + Tab", hl.dsp.focus({ last = true }), { description = "Window: Focus last window" })

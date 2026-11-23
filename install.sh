@@ -66,6 +66,14 @@ for f in kitty-theme.conf sequences.txt; do
   sync "$ROOT/state/terminal/$f" "$TDST/$f" "terminal palette $f"
 done
 
+# Matrix Sans dot-matrix fonts (OFL) for the desktop clock's "Dot matrix"
+# number style in Settings > Background.
+FDST="${XDG_DATA_HOME:-$HOME/.local/share}/fonts/matrix-sans"
+for f in "$ROOT"/state/fonts/*; do
+  sync "$f" "$FDST/${f##*/}" "clock font ${f##*/}"
+done
+fc-cache -f >/dev/null 2>&1 || true
+
 for c in kitty fish starship eza; do
   command -v "$c" >/dev/null || echo "WARNING: '$c' is not installed (needed for the kitty/fish look)"
 done

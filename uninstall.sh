@@ -67,6 +67,11 @@ for f in kitty-theme.conf sequences.txt; do
     [ -e "$p" ] && act "removed terminal palette ${p#"$TDST"/}" rm -f "$p"
   done
 done
+
+# Dot-matrix clock fonts
+FDST="${XDG_DATA_HOME:-$HOME/.local/share}/fonts/matrix-sans"
+[ -d "$FDST" ] && act "removed clock font dir matrix-sans" rm -rf "$FDST"
+[ "$DRY" = 0 ] && fc-cache -f >/dev/null 2>&1 || true
 APPLY="$DST/quickshell/ii/scripts/colors/applycolor.sh"
 if [ "$DRY" = 0 ] && [ -x "$APPLY" ] && [ -f "${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/user/generated/material_colors.scss" ]; then
   "$APPLY" >/dev/null 2>&1 && echo "regenerated terminal palette from the current theme" \

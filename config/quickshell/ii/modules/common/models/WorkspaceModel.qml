@@ -22,9 +22,29 @@ NestableObject {
     property list<bool> occupied: []
     property list<var> biggestWindow: occupied.map((_, index) => {
         const wsId = getWorkspaceIdAt(index);
-        var biggestWindow = HyprlandData.biggestWindowForWorkspace(wsId);
-        return biggestWindow;
+        // Fall back to windows parked on special:desktop (show-desktop active)
+        return HyprlandData.biggestWindowForWorkspace(wsId) || parkedDesktopWindowFor(wsId);
     })
+    // Per index: the icon source is a parked show-desktop window, so the bar
+    // renders it shrinked, as if Super were held
+    readonly property list<bool> fromParkedDesktop: occupied.map((_, index) => {
+        const wsId = getWorkspaceIdAt(index);
+        return !HyprlandData.biggestWindowForWorkspace(wsId) && parkedDesktopWindowFor(wsId) !== null;
+    })
+
+    // Biggest window parked on special:desktop that originated from workspaceId
+    function parkedDesktopWindowFor(workspaceId) {
+        const origins = HyprlandData.desktopParkedOrigins;
+        const wins = HyprlandData.windowList;
+        let best = null;
+        for (var i = 0; i < wins.length; ++i) {
+            const win = wins[i];
+            if (origins[win.address] !== workspaceId) continue;
+            if (!win.workspace || win.workspace.name !== "special:desktop") continue;
+            if (!best || win.size[0] * win.size[1] > best.size[0] * best.size[1]) best = win;
+        }
+        return best;
+    }
 
     function getWorkspaceId(group, index) {
         return group * root.shownCount + index + 1;
@@ -39,15 +59,26 @@ NestableObject {
             length: root.shownCount
         }, (_, i) => {
             const thisWorkspaceId = getWorkspaceId(root.group, i);
-            return Hyprland.workspaces.values.some(ws => ws.id === thisWorkspaceId);
+            return Hyprland.workspaces.values.some(ws => ws.id === thisWorkspaceId)
+                || parkedDesktopWindowFor(thisWorkspaceId) !== null;
         });
     }
 
-    // Occupied workspace updates
+    // Occupied workspace updates (a workspace whose windows are all parked on
+    // special:desktop still counts as occupied while the desktop is shown)
     Component.onCompleted: updateWorkspaceOccupied()
     Connections {
         target: Hyprland.workspaces
         function onValuesChanged() {
+            root.updateWorkspaceOccupied();
+        }
+    }
+    Connections {
+        target: HyprlandData
+        function onWindowListChanged() {
+            root.updateWorkspaceOccupied();
+        }
+        function onDesktopParkedOriginsChanged() {
             root.updateWorkspaceOccupied();
         }
     }

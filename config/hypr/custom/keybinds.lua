@@ -100,7 +100,7 @@ end)
 -- ever maximized/fullscreened/minimized, and the press is a no-op while any window
 -- on the workspace is maximized/fullscreened or when fewer than 2 windows are tiled.
 local masterOrientation = {} -- per-workspace master orientation, kept in sync by this bind
-hl.bind("CTRL + SPACE", function()
+hl.bind("CTRL + SUPER + SPACE", function()
     local ws = hl.get_active_workspace()
     local tiled = 0
     for _, win in ipairs(hl.get_workspace_windows(ws.id)) do
